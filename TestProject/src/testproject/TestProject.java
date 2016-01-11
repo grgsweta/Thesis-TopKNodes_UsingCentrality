@@ -38,11 +38,11 @@ public class TestProject {
     //public static String sourceFile = "input/0.edges";
     public static String sourceFile = "input/soc-twitter-follows-mun.edges";
     
-    public static HashMap<Integer, ArrayList<Integer>> original_adjacencyMap = new HashMap<>();  //HashMap with original Node id
-    public static HashMap<Integer, ArrayList<Integer>> adjacencyMap = new HashMap<>();           //HashMap with NEW Node id
+    public static HashMap<Integer, ArrayList<Integer>> original_adjacencyMap = new HashMap<>();  //HashMap with original Node id and its neighbours list
+    public static HashMap<Integer, ArrayList<Integer>> adjacencyMap = new HashMap<>();           //HashMap with NEW Node id  and its neighbours' new ids list
     public static HashMap<Integer, Integer> nodesMapping = new HashMap<>();   //original node ID -> serial numbers (starting from 0) assigned to each node id
     public static Matrix adjacencyMatrix;   
-    
+    public static int nodesCount;
     public static KatzCentralities kcMatrix;
     public static HashMap<Integer, Double> kcMap = new HashMap<>();  //kcMap -> contains nodes and their corresponding Katz Centralities
 
@@ -103,8 +103,8 @@ public class TestProject {
             e.printStackTrace();
         }
 
-        int vertices = original_adjacencyMap.size();
-        adjacencyMatrix = new Matrix(vertices, vertices);
+        int nodesCount = original_adjacencyMap.size();
+        adjacencyMatrix = new Matrix(nodesCount, nodesCount);
 
 //          try 
 //            {
@@ -155,15 +155,15 @@ public class TestProject {
         }
         
         NumberFormat n = NumberFormat.getIntegerInstance();
-        //adjacencyMatrix.print(vertices, vertices);
-        adjacencyMatrix.print(n,vertices);
+        //adjacencyMatrix.print(nodesCount, nodesCount);
+        adjacencyMatrix.print(n,nodesCount);
 
         File file = new File("input/file.txt");
         PrintWriter printWriter = null;
 
         try {
             printWriter = new PrintWriter(file);
-            adjacencyMatrix.print(printWriter, vertices, vertices);
+            adjacencyMatrix.print(printWriter, nodesCount, nodesCount);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } finally {
@@ -174,8 +174,8 @@ public class TestProject {
 
 //                Set keyset = adjacencyMap.keySet();
 //                System.out.println("Key values are \n" + keyset);
-//                int vertices = adjacencyMap.size();
-//                GraphAdjacencyMatrix graph = new GraphAdjacencyMatrix(vertices);
+//                int nodesCount = adjacencyMap.size();
+//                GraphAdjacencyMatrix graph = new GraphAdjacencyMatrix(nodesCount);
 //                for(Entry<Integer, ArrayList<Integer>> e : adjacencyMap.entrySet()){
 //                    //System.out.println("here");
 //                    int fromNode = e.getKey();
@@ -189,14 +189,14 @@ public class TestProject {
 //
 //                System.out.println("The adjacency matrix for the given graph is: ");
 //                System.out.print("  ");
-//                for (int i = 1; i <= vertices; i++)
+//                for (int i = 1; i <= nodesCount; i++)
 //                    System.out.print(i + " ");
 //                System.out.println();
 //
-//                for (int i = 1; i <= vertices; i++) 
+//                for (int i = 1; i <= nodesCount; i++) 
 //                {
 //                    System.out.print(i + " ");
-//                    for (int j = 1; j <= vertices; j++) 
+//                    for (int j = 1; j <= nodesCount; j++) 
 //                        System.out.print(graph.getEdge(i, j) + " ");
 //                    System.out.println();
 //                }
@@ -212,12 +212,12 @@ public class TestProject {
 //            ArrayList<Integer> newList = e.getValue();
 //            newList.forEach(System.out::println);
 //        }
-        computeKatzCentralities(vertices);
-        findTopKNodes(vertices);
+        computeKatzCentralities(nodesCount);
+        findTopKNodes(nodesCount);
     }
 
-    public static void computeKatzCentralities(int vertices) {
-        kcMatrix = new KatzCentralities(vertices);
+    public static void computeKatzCentralities(int nodesCount) {
+        kcMatrix = new KatzCentralities(nodesCount);
         
         ArrayList<Double> eigenValuesList = kcMatrix.getEigenValues(adjacencyMatrix);
         double lambda = Collections.max(eigenValuesList, null); //largest eigen value
@@ -227,7 +227,7 @@ public class TestProject {
         System.out.println("Provide the value for Beta: ");
         String stringBeta = inputBeta.next().trim();
         double beta;
-        if (stringBeta.equals(null) || stringBeta == null) {
+        if (stringBeta == null) {
             System.out.println("The value for Beta i.e. 1.0 will be used.");
             beta = 1.0;
         } else {
@@ -241,28 +241,63 @@ public class TestProject {
     }
     
     
-    public static void findTopKNodes(int vertices) {
-        
-//kcMap -> contains nodes and their corresponding Katz Centralities
+    public static void findTopKNodes(int nodesCount) {
+        //kcMap -> contains nodes and their corresponding Katz Centralities
         double nodeKatz;
-        double sumKatz = 0.00;
-        for(int node = 0; node <= vertices ; node++) {
-            nodeKatz = kcMatrix.getNodeKatz(node, 0);
-            sumKatz += nodeKatz;
+        double globalSumKatz = 0.00;
+        
+        Matrix katzMatrix = kcMatrix.getKatzMatrix();
+        double[][] katzArray = katzMatrix.getArray();   //getting the Katz values in Array
+        //System.out.println( " " + katzArray.length );
+        
+        // Looping through the the Katz values and putting in a HashMap <node, its katz Value>
+        for(int node = 0; node < katzArray.length; node++) {
+            //System.out.println("here");
+            nodeKatz = katzArray[node][0];
+            globalSumKatz += nodeKatz;
             kcMap.put(node, nodeKatz);
         }
-        double avgKatz = sumKatz/vertices; 
         
-        ArrayList<Integer> nbrList;
+//        for(int node = 0; node <= nodesCount ; node++) {
+//            nodeKatz = kcMatrix.getNodeKatz(node, 0);
+//            sumKatz += nodeKatz;
+//            kcMap.put(node, nodeKatz);
+//        }
+        double globalAvgKatz = globalSumKatz/nodesCount; 
+        System.out.println("Global Avg Katz: "+globalAvgKatz);
+        
+        ArrayList<Integer> topKList = new ArrayList<>();
 //        HashMap<Integer, Double> 
-        for(int node = 0; node <= vertices ; node++) {
-            //nbrKatzCentralitiesMap adjacencyMap
-            nbrList = adjacencyMap.get(node);
-            for (Integer nbr : nbrList) {
-                nodeKatz = kcMatrix.getNodeKatz(nbr, 0);
-//                nbrKatzCentralitiesMap.put(, nbrList)n, nbrList)u
-            }
+        
+        for(Entry<Integer, ArrayList<Integer>> e : adjacencyMap.entrySet()){
+            int fromNode = e.getKey();
+            
+            double fromNodeKatz = kcMap.get(fromNode);
+            System.out.println(fromNode + "->" +fromNodeKatz);
+            
+            if (fromNodeKatz >= globalAvgKatz){
+                double localAvgKatz;
+                double localSumKatz = fromNodeKatz;
+//                double localSumKatz = 0.00;
+                
+                ArrayList<Integer> neighboursList = e.getValue();
+                int neighbourCount = neighboursList.size();
+                double toNodeKatz;
+                
+                for (Integer toNode : neighboursList) {
+                    toNodeKatz = kcMap.get(toNode);
+                    localSumKatz += toNodeKatz;
+                }
+                
+                localAvgKatz = localSumKatz/(neighbourCount + 1);
+                System.out.println("Local Avg Katz of node '" + fromNode + "': "+localAvgKatz);
+                
+                
+                if (localAvgKatz >= globalAvgKatz) {
+                    topKList.add(fromNode);
+                } 
+            }  
         }
-    
+        System.out.println(topKList);
     }
 }

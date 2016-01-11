@@ -14,7 +14,7 @@ import java.util.ArrayList;
 //import static testproject.TestProject.adjacencyMap;
 import static testproject.TestProject.adjacencyMatrix;
 //import static testproject.TestProject.kcMap;
-//import static testproject.TestProject.kcMatrix;
+import static testproject.TestProject.kcMatrix;
 
 public class KatzCentralities {
     private Matrix KatzMatrix;
@@ -30,7 +30,16 @@ public class KatzCentralities {
     }
     
     public double getNodeKatz(int row, int col) {
+        
+        //row = KatzMatrix.getRowDimension();
+        //col = KatzMatrix.getColumnDimension();
+        //KatzMatrix.print(KatzMatrixSize, KatzMatrixSize);
+        //System.out.println(KatzMatrix.get(row, col));
         return KatzMatrix.get(row, col);
+    }
+    
+    public Matrix getTranspose() {
+        return KatzMatrix.transpose();
     }
     
     public void print() {
