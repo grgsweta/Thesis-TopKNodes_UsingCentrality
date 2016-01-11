@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Scanner;
 //import java.util.Scanner;
 import java.util.Set;
@@ -45,6 +46,7 @@ public class TestProject {
     public static int nodesCount;
     public static KatzCentralities kcMatrix;
     public static HashMap<Integer, Double> kcMap = new HashMap<>();  //kcMap -> contains nodes and their corresponding Katz Centralities
+    public static ArrayList<Integer> finalTopKList = new ArrayList<>();  //kcMap -> contains nodes and their corresponding Katz Centralities
 
 //    public static HashMap<Integer, ArrayList<Integer>> nbrKatzCentralitiesMap = new HashMap<>();
 //    public static HashMap<Integer, HashMap<Integer, Double>> nbrKatzCentralitiesMap = new HashMap<>();
@@ -221,7 +223,19 @@ public class TestProject {
         
         ArrayList<Double> eigenValuesList = kcMatrix.getEigenValues(adjacencyMatrix);
         double lambda = Collections.max(eigenValuesList, null); //largest eigen value
-        double alpha = ThreadLocalRandom.current().nextDouble(0, 1 / lambda);  //damping factor
+        
+        Scanner inputAlpha = new Scanner(System.in);
+        System.out.println("The value for Alpha should be less than '" + (1/lambda) + "'");
+        System.out.println("Provide the value for Alpha: ");
+        String stringAlpha = inputAlpha.next().trim();
+        double alpha;
+        if (stringAlpha == null || Double.parseDouble(stringAlpha) > (1 / lambda)) {
+            alpha = ThreadLocalRandom.current().nextDouble(0, 1 / lambda);  //damping factor
+            System.out.println("Random alpha value within the desired range value will be used.");
+            System.out.println("Alpha value used: " + alpha);
+        } else {
+            alpha = Double.parseDouble(stringAlpha);
+        }
         
         Scanner inputBeta = new Scanner(System.in);
         System.out.println("Provide the value for Beta: ");
@@ -234,7 +248,7 @@ public class TestProject {
             beta = Double.parseDouble(stringBeta);
         }
         
-        alpha = 0.25;
+        //alpha = 0.25;
         kcMatrix.compute(alpha,beta);
         
         kcMatrix.print();
@@ -264,21 +278,19 @@ public class TestProject {
 //            kcMap.put(node, nodeKatz);
 //        }
         double globalAvgKatz = globalSumKatz/nodesCount; 
-        System.out.println("Global Avg Katz: "+globalAvgKatz);
+        System.out.println("Global Avg Katz: " + globalAvgKatz);
         
         ArrayList<Integer> topKList = new ArrayList<>();
-//        HashMap<Integer, Double> 
-        
         for(Entry<Integer, ArrayList<Integer>> e : adjacencyMap.entrySet()){
             int fromNode = e.getKey();
             
             double fromNodeKatz = kcMap.get(fromNode);
-            System.out.println(fromNode + "->" +fromNodeKatz);
+            //System.out.println(fromNode + "->" + fromNodeKatz);
             
             if (fromNodeKatz >= globalAvgKatz){
                 double localAvgKatz;
                 double localSumKatz = fromNodeKatz;
-//                double localSumKatz = 0.00;
+                //double localSumKatz = 0.00;
                 
                 ArrayList<Integer> neighboursList = e.getValue();
                 int neighbourCount = neighboursList.size();
@@ -290,8 +302,8 @@ public class TestProject {
                 }
                 
                 localAvgKatz = localSumKatz/(neighbourCount + 1);
+                System.out.println(fromNode + "->" + fromNodeKatz);
                 System.out.println("Local Avg Katz of node '" + fromNode + "': "+localAvgKatz);
-                
                 
                 if (localAvgKatz >= globalAvgKatz) {
                     topKList.add(fromNode);
@@ -299,5 +311,15 @@ public class TestProject {
             }  
         }
         System.out.println(topKList);
+        
+        for (Integer newNodeID : topKList) {
+            //one-to-one relationship between Key and Value
+            for (Entry<Integer, Integer> entry : nodesMapping.entrySet()) {
+                if (Objects.equals(newNodeID, entry.getValue())) {
+                    finalTopKList.add(entry.getKey());  //getting the Old id for the node from nodesMapping --values
+                }
+            }
+        }
+        System.out.println(finalTopKList);
     }
 }
