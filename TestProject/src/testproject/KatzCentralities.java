@@ -9,15 +9,58 @@ package testproject;
  * @author useradmin
  */
 import Jama.*;
+//import java.text.NumberFormat;
 import java.util.ArrayList;
+//import static testproject.TestProject.adjacencyMap;
+import static testproject.TestProject.adjacencyMatrix;
+//import static testproject.TestProject.kcMap;
+//import static testproject.TestProject.kcMatrix;
 
 public class KatzCentralities {
-    private Matrix mGraph;
-    private int mGraphSize;
+    private Matrix KatzMatrix;
+    private int KatzMatrixSize;
     
-    public KatzCentralities(Matrix m, int size) {
-        this.mGraph = m;
-        this.mGraphSize = size;
+    public KatzCentralities(int size) {
+        KatzMatrix = new Matrix(size, 1);
+        KatzMatrixSize = size;
+    }
+    
+    public Matrix getKatzMatrix() {
+        return KatzMatrix;
+    }
+    
+    public double getNodeKatz(int row, int col) {
+        return KatzMatrix.get(row, col);
+    }
+    
+    public void print() {
+        //NumberFormat n = NumberFormat.getIntegerInstance();
+        KatzMatrix.print(KatzMatrixSize, KatzMatrixSize);
+        //KatzMatrix.print(n,KatzMatrixSize);
+        
+    }
+    
+    public void compute(double alpha, double beta) {
+        //C_Katz = beta * (I - alpha*A_transpose)^(-1)*1
+        Matrix identityMatrix = Matrix.identity(KatzMatrixSize, KatzMatrixSize);
+        Matrix onesMatrix = new Matrix(KatzMatrixSize, 1,1);
+        
+        //System.out.println("The value of Alpha is: " + alpha);
+        
+        Matrix intermediateMatrix = adjacencyMatrix.transpose();                   //A_transpose
+        intermediateMatrix.timesEquals(alpha);                                     //- alpha*A_transpose
+        intermediateMatrix = identityMatrix.minusEquals(intermediateMatrix);       //(I - alpha*A_transpose)
+        //intermediateMatrix.print(KatzMatrixSize, KatzMatrixSize);
+        intermediateMatrix = intermediateMatrix.inverse();                         //(I - alpha*A_transpose)^(-1)
+               
+        //intermediateMatrix.print(KatzMatrixSize, KatzMatrixSize);
+        
+        intermediateMatrix.timesEquals(beta);                                      //beta * (I - alpha*A_transpose)^(-1)
+        //intermediateMatrix.print(KatzMatrixSize, KatzMatrixSize);
+        onesMatrix.print(KatzMatrixSize, 1);
+        KatzMatrix = intermediateMatrix.times(onesMatrix);                         //beta * (I - alpha*A_transpose)^(-1)*1
+        //KatzMatrix.print(KatzMatrixSize, KatzMatrixSize);
+       
     }
     
     public ArrayList<Double> getEigenValues(Matrix adjacency_matrix) {
@@ -39,36 +82,14 @@ public class KatzCentralities {
 	EigenvalueDecomposition eigen = m.eig();
 
 	double [] realPart = eigen.getRealEigenvalues();
-	double [] imagPart = eigen.getImagEigenvalues();
+	//double [] imagPart = eigen.getImagEigenvalues();
 
         ArrayList<Double> eigenValuesList = new ArrayList<>();
 	for(int i = 0; i < realPart.length; i++) {
-//	    System.out.println("Eigen Value " + i + " is " +
-//			       "[" + realPart[i] + ", " + 
-//			       + imagPart[i] + "]");
+            //System.out.println("Eigen Value " + i + " is " + "[" + realPart[i] + ", " + imagPart[i] + "]");
             eigenValuesList.add(realPart[i]);
         }
 
-
-	//Get the block diagonal matrix of
-	//Eigen values
-//	Matrix d = eigen.getD();
-//	System.out.println("Diagonal matrix of Eigen values is:");
-//        d.print(8,4);
-
-//	Matrix evectors = eigen.getV();
-//
-//	System.out.println("Matrix of Eigen Vectors is:");
-//	evectors.print(8,4);
-
-	//Get transpose of evectors
-//	Matrix trans = evectors.transpose();
-//
-//	//Form trans*evectors (which should be unit matrix)
-//	Matrix u = evectors.times(trans);
-//
-//	System.out.println("Matrix of trans * evectors is :");
-//	u.print(8,4);
         return eigenValuesList;
     } 
 }
