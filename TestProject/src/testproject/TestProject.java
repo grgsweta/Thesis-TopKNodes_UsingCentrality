@@ -13,17 +13,21 @@ import static java.lang.Integer.parseInt;
 import java.util.ArrayList;
 import java.util.HashMap;
 import Jama.*;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.text.NumberFormat;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Scanner;
 //import java.util.Scanner;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -36,14 +40,12 @@ public class TestProject {
      * @param args the command line arguments
      */
     //List of global variables
-    //public static String sourceFile = "input/0.edges";
-    public static String sourceFile = "input/soc-twitter-follows-mun.edges";
+
     
-    public static HashMap<Integer, ArrayList<Integer>> original_adjacencyMap = new HashMap<>();  //HashMap with original Node id and its neighbours list
+    //public static HashMap<Integer, ArrayList<Integer>> original_adjacencyMap = new HashMap<>();  //HashMap with original Node id and its neighbours list
     public static HashMap<Integer, ArrayList<Integer>> adjacencyMap = new HashMap<>();           //HashMap with NEW Node id  and its neighbours' new ids list
     public static HashMap<Integer, Integer> nodesMapping = new HashMap<>();   //original node ID -> serial numbers (starting from 0) assigned to each node id
     public static Matrix adjacencyMatrix;   
-    public static int nodesCount;
     public static KatzCentralities kcMatrix;
     public static HashMap<Integer, Double> kcMap = new HashMap<>();  //kcMap -> contains nodes and their corresponding Katz Centralities
     public static ArrayList<Integer> finalTopKList = new ArrayList<>();  //kcMap -> contains nodes and their corresponding Katz Centralities
@@ -51,38 +53,28 @@ public class TestProject {
 //    public static HashMap<Integer, ArrayList<Integer>> nbrKatzCentralitiesMap = new HashMap<>();
 //    public static HashMap<Integer, HashMap<Integer, Double>> nbrKatzCentralitiesMap = new HashMap<>();
    
-    public static void main(String args[]) {
-//        int v, e, count = 1, to = 0, from = 0;
-//        Scanner locationReader = new Scanner(System.in);
-//        System.out.println("Graph File Location: ");
-//        String graphFile = locationReader.next();
-//        graphFile = graphFile.replaceAll("\\\\", "/");
-//        //GraphRead inputGraph; 
-//        GraphRead.getGraphData(graphFile);
-//        Map<Integer, ArrayList<Integer>> adjacencyMap = new HashMap<>();
+    public static void main(String args[]) throws IOException {
+        //String sourceFile = "input/papereg.edges";
+        String sourceFile = "input/soc-twitter-follows-mun.edges";
+//        String sourceFile = "input/facebook.edges";
+        
+        HashMap<Integer, ArrayList<Integer>> original_adjacencyMap = new HashMap<>();  //HashMap with original Node id and its neighbours list
         BufferedReader sourceFileRead = null;
 
-//        Scanner in = new Scanner(System.in);
-//        System.out.println("Enter the file path: ");
-//        String filePath = in.next();
-//        File sourceFile = new File(filePath);
-//        System.out.println("");
-//        if(sourceFile.exists() ){//&& sourceFile.isDirectory()) {
-//            Map<Integer, ArrayList<Integer>> adjacencyMap = new HashMap<>();
-//            BufferedReader sourceFileRead = null;
-//            System.out.println("1");
         try {
             sourceFileRead = new BufferedReader(new FileReader(sourceFile));
             //StringBuffer document = new StringBuffer();
 
             String currentLine = null;
-
+            int element0;
+            int element1;
+            
             while ((currentLine = sourceFileRead.readLine()) != null) {
                 if (Character.isDigit(currentLine.charAt(0))) {        //distinguishes each document by the starting point ".i"
 //                        SrtingTokenizer token = new StringTokenizer(currentLine);
                     String[] element = currentLine.split("\\s+");
-                    int element0 = parseInt(element[0]);
-                    int element1 = parseInt(element[1]);
+                    element0 = parseInt(element[0]);
+                    element1 = parseInt(element[1]);
                     if (original_adjacencyMap.containsKey(element0)) {
                         //System.out.println("1case: " + element0 +"->"+element1);
                         original_adjacencyMap.get(element0).add(element1);
@@ -130,13 +122,15 @@ public class TestProject {
         }
         //System.out.println();
 
+        int node;
+        int neighbour;
         for (Entry<Integer, ArrayList<Integer>> e : original_adjacencyMap.entrySet()) {
             //System.out.println("here");
-            int node = nodesMapping.get(e.getKey()); //getting the new id for the node from nodesMapping --key
+            node = nodesMapping.get(e.getKey()); //getting the new id for the node from nodesMapping --key
             ArrayList<Integer> neighbourList = e.getValue();
             ArrayList<Integer> neighbourListUpdated = new ArrayList<>();
             //System.out.println(node +" "+neighbourList);
-            int neighbour;
+            
             for (Integer n : neighbourList) {
                 neighbour = nodesMapping.get(n); //getting the new id for the node from nodesMapping --values
                 //System.out.println(node + "-> "+ neighbour);
@@ -146,9 +140,10 @@ public class TestProject {
             adjacencyMap.put(node, neighbourListUpdated);
         }
 
+        int fromNode;
         for (Entry<Integer, ArrayList<Integer>> e : adjacencyMap.entrySet()) {
             //System.out.println("here");
-            int fromNode = e.getKey();
+            fromNode = e.getKey();
             ArrayList<Integer> newList = e.getValue();
             for (Integer toNodes : newList) {
                 //System.out.println(fromNode + "->" + toNodes);
@@ -156,10 +151,12 @@ public class TestProject {
             }
         }
         
+        /*
+        //To Print the Adjacency Matrix of the Entire Network
         NumberFormat n = NumberFormat.getIntegerInstance();
-        //adjacencyMatrix.print(nodesCount, nodesCount);
         adjacencyMatrix.print(n,nodesCount);
-
+        */
+        /*
         File file = new File("input/file.txt");
         PrintWriter printWriter = null;
 
@@ -173,6 +170,7 @@ public class TestProject {
                 printWriter.close();
             }
         }
+        */
 
 //                Set keyset = adjacencyMap.keySet();
 //                System.out.println("Key values are \n" + keyset);
@@ -228,6 +226,7 @@ public class TestProject {
         System.out.println("The value for Alpha should be less than '" + (1/lambda) + "'");
         System.out.println("Provide the value for Alpha: ");
         String stringAlpha = inputAlpha.next().trim();
+        
         double alpha;
         if (stringAlpha == null || Double.parseDouble(stringAlpha) > (1 / lambda)) {
             alpha = ThreadLocalRandom.current().nextDouble(0, 1 / lambda);  //damping factor
@@ -241,6 +240,7 @@ public class TestProject {
         System.out.println("Provide the value for Beta: ");
         String stringBeta = inputBeta.next().trim();
         double beta;
+        
         if (stringBeta == null) {
             System.out.println("The value for Beta i.e. 1.0 will be used.");
             beta = 1.0;
@@ -251,11 +251,11 @@ public class TestProject {
         //alpha = 0.25;
         kcMatrix.compute(alpha,beta);
         
-        kcMatrix.print();
+        //kcMatrix.print();
     }
     
     
-    public static void findTopKNodes(int nodesCount) {
+    public static void findTopKNodes(int nodesCount) throws IOException {
         //kcMap -> contains nodes and their corresponding Katz Centralities
         double nodeKatz;
         double globalSumKatz = 0.00;
@@ -280,21 +280,39 @@ public class TestProject {
         double globalAvgKatz = globalSumKatz/nodesCount; 
         System.out.println("Global Avg Katz: " + globalAvgKatz);
         
+        File file = new File("input/TopKNodesList.txt");
+        File file1 = new File("input/LocalLessthanGlobal.txt");
+        
+        BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+        BufferedWriter bw1 = new BufferedWriter(new FileWriter(file1));
+        bw.write("The total number of nodes in the network: " + nodesCount);
+        bw.newLine();
+        bw.newLine();
+        
+        bw.write("fromNode fromNodeKatz localAvgKatz");
+        bw.newLine();
+        
         ArrayList<Integer> topKList = new ArrayList<>();
+        HashMap<Integer, Double> topKListHash = new HashMap<>();
+        
+        int fromNode;
+        double fromNodeKatz;
+        double localAvgKatz;
+        double localSumKatz; 
+        int neighbourCount;
+        double toNodeKatz;
         for(Entry<Integer, ArrayList<Integer>> e : adjacencyMap.entrySet()){
-            int fromNode = e.getKey();
+            fromNode = e.getKey();
             
-            double fromNodeKatz = kcMap.get(fromNode);
+            fromNodeKatz = kcMap.get(fromNode);
             //System.out.println(fromNode + "->" + fromNodeKatz);
             
             if (fromNodeKatz >= globalAvgKatz){
-                double localAvgKatz;
-                double localSumKatz = fromNodeKatz;
-                //double localSumKatz = 0.00;
+                localSumKatz = fromNodeKatz;
+//                double localSumKatz = 0.00;
                 
                 ArrayList<Integer> neighboursList = e.getValue();
-                int neighbourCount = neighboursList.size();
-                double toNodeKatz;
+                neighbourCount = neighboursList.size();
                 
                 for (Integer toNode : neighboursList) {
                     toNodeKatz = kcMap.get(toNode);
@@ -302,24 +320,117 @@ public class TestProject {
                 }
                 
                 localAvgKatz = localSumKatz/(neighbourCount + 1);
-                System.out.println(fromNode + "->" + fromNodeKatz);
-                System.out.println("Local Avg Katz of node '" + fromNode + "': "+localAvgKatz);
+//                localAvgKatz = localSumKatz/(neighbourCount);
+//                System.out.println(fromNode + "->" + fromNodeKatz);
+//                System.out.println("Local Avg Katz of node '" + fromNode + "': "+localAvgKatz);
+                
                 
                 if (localAvgKatz >= globalAvgKatz) {
                     topKList.add(fromNode);
-                } 
+                    
+  
+                   bw.write(fromNode + " " + fromNodeKatz+ " " + localAvgKatz);
+                   bw.newLine();
+                   
+//                    System.out.println(fromNode + "->" + fromNodeKatz);
+//                    System.out.println("Local Avg Katz of node '" + fromNode + "': "+localAvgKatz);
+                }
+//                System.out.println("Local < Global");
+                if (localAvgKatz < globalAvgKatz) {
+                    bw1.write(fromNode + " " + fromNodeKatz+ " " + localAvgKatz);
+                    bw1.newLine();
+//                    System.out.println(fromNode + "->" + fromNodeKatz);
+//                    System.out.println("Local Avg Katz of node '" + fromNode + "': "+localAvgKatz);
+                }
+                
             }  
         }
-        System.out.println(topKList);
+        //System.out.println(topKList);
+        
+        bw.close();
+        bw1.close();
         
         for (Integer newNodeID : topKList) {
             //one-to-one relationship between Key and Value
             for (Entry<Integer, Integer> entry : nodesMapping.entrySet()) {
                 if (Objects.equals(newNodeID, entry.getValue())) {
                     finalTopKList.add(entry.getKey());  //getting the Old id for the node from nodesMapping --values
+                    topKListHash.put(entry.getKey(), kcMap.get(entry.getValue()));
                 }
             }
         }
+        
+        System.out.println("The total number of nodes in the network: " + nodesCount);
+        System.out.println("The total number of top-k nodes found: " + finalTopKList.size());
         System.out.println(finalTopKList);
+        System.out.println();
+        System.out.println("How many top-K nodes do you want?: ");
+        Scanner inputK = new Scanner(System.in);
+        
+        String stringK = inputK.next().trim();
+        int topK;
+        if (stringK == null) {
+            System.out.println("All the top nodes will be displayed.");
+            topK = nodesCount;
+        } else {
+            topK = Integer.parseInt(stringK);
+        }
+        
+        
+//        ValueComparator bvc =  new ValueComparator(topKListHash);
+//        TreeMap<Integer,Double> sorted_map = new TreeMap<>(bvc);
+        
+        
+//        System.out.println(sorted_map);
+        
+        boolean DESC = false;
+        HashMap<Integer, Double> sortedMapDesc = sortByComparator(topKListHash, DESC);
+        
+        System.out.println("Top " + topK + "nodes are as follows: ");
+        printMap(sortedMapDesc,topK,nodesCount);
+
+    }
+    
+    
+    
+     private static HashMap<Integer, Double> sortByComparator(HashMap<Integer, Double> unsortMap, final boolean order) {
+
+        List<Entry<Integer, Double>> list = new LinkedList<>(unsortMap.entrySet());
+
+        // Sorting the list based on values
+        Collections.sort(list, new Comparator<Entry<Integer, Double>>()
+        {
+            public int compare(Entry<Integer, Double> o1,
+                    Entry<Integer, Double> o2)
+            {
+                if (order)
+                {
+                    return o1.getValue().compareTo(o2.getValue());
+                }
+                else
+                {
+                    return o2.getValue().compareTo(o1.getValue());
+
+                }
+            }
+        });
+
+        // Maintaining insertion order with the help of LinkedList
+        HashMap<Integer, Double> sortedMap = new LinkedHashMap<>();
+        for (Entry<Integer, Double> entry : list) {
+            sortedMap.put(entry.getKey(), entry.getValue());
+        }
+
+        return sortedMap;
+    }
+
+    public static void printMap(HashMap<Integer, Double> map, Integer topK, Integer nodesCount) {
+        int i = 1;
+        for (Entry<Integer, Double> entry : map.entrySet()) {
+            if (i > topK && !Objects.equals(topK, nodesCount)) break;
+            System.out.println("Node : " + entry.getKey() + " Katz Centrality : "+ entry.getValue());
+            i++;
+        }
     }
 }
+
