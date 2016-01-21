@@ -54,9 +54,17 @@ public class TestProject {
 //    public static HashMap<Integer, HashMap<Integer, Double>> nbrKatzCentralitiesMap = new HashMap<>();
    
     public static void main(String args[]) throws IOException {
-        //String sourceFile = "input/papereg.edges";
-        String sourceFile = "input/soc-twitter-follows-mun.edges";
-//        String sourceFile = "input/facebook.edges";
+//        String sourceFile = "input/papereg.edges";
+        String sourceFile = "input/mypapereg.edges";
+//        String sourceFile = "input/soc-twitter-follows-mun.edges";
+//        String sourceFile = "input/soc-Epinions1.txt";
+//        String sourceFile = "input/107.edges";    //1034
+//        String sourceFile = "input/1912.edges"; //747
+//        String sourceFile = "input/414.edges"; //150
+//        String sourceFile = "input/0-414.txt"; //480
+//        String sourceFile = "input/0-414-107.txt"; //1495
+//        String sourceFile = "input/facebook-0.edges";
+//        String sourceFile = "input/twitter-truncated-data.txt";
         
         HashMap<Integer, ArrayList<Integer>> original_adjacencyMap = new HashMap<>();  //HashMap with original Node id and its neighbours list
         BufferedReader sourceFileRead = null;
@@ -98,7 +106,9 @@ public class TestProject {
         }
 
         int nodesCount = original_adjacencyMap.size();
-        adjacencyMatrix = new Matrix(nodesCount, nodesCount);
+        System.out.println(nodesCount);
+              
+        
 
 //          try 
 //            {
@@ -139,7 +149,7 @@ public class TestProject {
 
             adjacencyMap.put(node, neighbourListUpdated);
         }
-
+        adjacencyMatrix = new Matrix(nodesCount, nodesCount);
         int fromNode;
         for (Entry<Integer, ArrayList<Integer>> e : adjacencyMap.entrySet()) {
             //System.out.println("here");
@@ -150,7 +160,7 @@ public class TestProject {
                 adjacencyMatrix.set(fromNode, toNodes, 1.0);
             }
         }
-        
+        System.out.println("before centrality");
         /*
         //To Print the Adjacency Matrix of the Entire Network
         NumberFormat n = NumberFormat.getIntegerInstance();
@@ -301,6 +311,7 @@ public class TestProject {
         double localSumKatz; 
         int neighbourCount;
         double toNodeKatz;
+        
         for(Entry<Integer, ArrayList<Integer>> e : adjacencyMap.entrySet()){
             fromNode = e.getKey();
             

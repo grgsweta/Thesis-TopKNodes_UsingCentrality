@@ -14,11 +14,11 @@ import java.util.ArrayList;
 //import static testproject.TestProject.adjacencyMap;
 import static testproject.TestProject.adjacencyMatrix;
 //import static testproject.TestProject.kcMap;
-import static testproject.TestProject.kcMatrix;
+//import static testproject.TestProject.kcMatrix;
 
 public class KatzCentralities {
     private Matrix KatzMatrix;
-    private int KatzMatrixSize;
+    private final int KatzMatrixSize;
     
     public KatzCentralities(int size) {
         KatzMatrix = new Matrix(size, 1);
@@ -66,7 +66,8 @@ public class KatzCentralities {
         
         intermediateMatrix.timesEquals(beta);                                      //beta * (I - alpha*A_transpose)^(-1)
         //intermediateMatrix.print(KatzMatrixSize, KatzMatrixSize);
-        onesMatrix.print(KatzMatrixSize, 1);
+        //onesMatrix.print(KatzMatrixSize, 1);
+        
         KatzMatrix = intermediateMatrix.times(onesMatrix);                         //beta * (I - alpha*A_transpose)^(-1)*1
         //KatzMatrix.print(KatzMatrixSize, KatzMatrixSize);
        
