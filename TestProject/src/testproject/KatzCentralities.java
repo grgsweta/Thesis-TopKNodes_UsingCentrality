@@ -13,6 +13,7 @@ import Jama.*;
 import java.util.ArrayList;
 //import static testproject.TestProject.adjacencyMap;
 import static testproject.TestProject.adjacencyMatrix;
+import static testproject.TestProject.outDegreeMatrix;
 //import static testproject.TestProject.kcMap;
 //import static testproject.TestProject.kcMatrix;
 
@@ -57,20 +58,18 @@ public class KatzCentralities {
         //System.out.println("The value of Alpha is: " + alpha);
         
         Matrix intermediateMatrix = adjacencyMatrix.transpose();                   //A_transpose
-        intermediateMatrix.timesEquals(alpha);                                     //- alpha*A_transpose
+        intermediateMatrix.timesEquals(alpha);                                     //alpha*A_transpose
+        
+//        intermediateMatrix = intermediateMatrix.times(outDegreeMatrix);  //pagerank
+        
         intermediateMatrix = identityMatrix.minusEquals(intermediateMatrix);       //(I - alpha*A_transpose)
-        //intermediateMatrix.print(KatzMatrixSize, KatzMatrixSize);
         intermediateMatrix = intermediateMatrix.inverse();                         //(I - alpha*A_transpose)^(-1)
-               
-        //intermediateMatrix.print(KatzMatrixSize, KatzMatrixSize);
-        
         intermediateMatrix.timesEquals(beta);                                      //beta * (I - alpha*A_transpose)^(-1)
-        //intermediateMatrix.print(KatzMatrixSize, KatzMatrixSize);
-        //onesMatrix.print(KatzMatrixSize, 1);
-        
         KatzMatrix = intermediateMatrix.times(onesMatrix);                         //beta * (I - alpha*A_transpose)^(-1)*1
-        //KatzMatrix.print(KatzMatrixSize, KatzMatrixSize);
+        KatzMatrix.print(KatzMatrixSize, KatzMatrixSize);
        
+        
+        
     }
     
     public ArrayList<Double> getEigenValues(Matrix adjacency_matrix) {
